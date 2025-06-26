@@ -102,6 +102,51 @@ def main_ui():
                     "product_dims": r["product_dims"]
                 } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False).reset_index(drop=True)
 
+                # Selecteer oplossing voor visualisatie
+                selected_idx = st.radio('📊 Selecteer een oplossing om te visualiseren', result_df.index.tolist())
+                selected_row = result_df.loc[selected_idx]
+
+                # Visualisatie in Plotly
+                import plotly.graph_objects as go
+
+                box_l, box_w, box_h = selected_row['box_inner']
+                prod_l, prod_w, prod_h = selected_row['product_dims']
+                rows, cols, layers = selected_row['Rijen'], selected_row['Kolommen'], selected_row['Lagen']
+
+                fig = go.Figure()
+
+                # Voeg alle producten toe als blokken
+                for z in range(layers):
+                    for y in range(cols):
+                        for x in range(rows):
+                            fig.add_trace(go.Mesh3d(
+                                x=[x*prod_l, x*prod_l + prod_l, x*prod_l + prod_l, x*prod_l, x*prod_l, x*prod_l + prod_l, x*prod_l + prod_l, x*prod_l],
+                                y=[y*prod_w, y*prod_w, y*prod_w + prod_w, y*prod_w + prod_w, y*prod_w, y*prod_w, y*prod_w + prod_w, y*prod_w + prod_w],
+                                z=[z*prod_h, z*prod_h, z*prod_h, z*prod_h, z*prod_h + prod_h, z*prod_h + prod_h, z*prod_h + prod_h, z*prod_h + prod_h],
+                                opacity=0.85,
+                                color='skyblue',
+                                showscale=False
+                            ))
+
+                # Omdoos als transparant wireframe
+                fig.add_trace(go.Mesh3d(
+                    x=[0, box_l, box_l, 0, 0, box_l, box_l, 0],
+                    y=[0, 0, box_w, box_w, 0, 0, box_w, box_w],
+                    z=[0, 0, 0, 0, box_h, box_h, box_h, box_h],
+                    opacity=0.1,
+                    color='gray',
+                    showscale=False
+                ))
+
+                fig.update_layout(scene=dict(
+                    xaxis_title='L',
+                    yaxis_title='B',
+                    zaxis_title='H',
+                    aspectmode='data'),
+                    title='3D Visualisatie van Producten in Omdoos')
+
+                st.plotly_chart(fig, use_container_width=True)
+
                 # Checkbox per rij via expander
                 st.markdown("### ✅ Selecteer favorieten")
                 selections = []
@@ -111,19 +156,13 @@ def main_ui():
                         if st.checkbox("Toevoegen aan favorieten", key=f"fav_{i}"):
                             selections.append(row.to_dict())
 
-                if "favorites" not in st.session_state:
-                    st.session_state["favorites"] = []
 
                 if st.button("➕ Voeg geselecteerde favorieten toe"):
-                    st.session_state["favorites"].extend(selections)
                     st.success(f"{len(selections)} favoriet(en) toegevoegd.")
 
-                if "favorites" not in st.session_state:
-                    st.session_state["favorites"] = []
 
                 if st.button("➕ Voeg geselecteerde favorieten toe"):
                     selected = edited_df[edited_df["Favoriet"] == True].drop(columns=["Favoriet"])
-                    st.session_state["favorites"].extend(selected.to_dict(orient="records"))
                     st.success(f"{len(selected)} favoriet(en) toegevoegd.")
 
                 # Checkbox selectie van favorieten
@@ -132,27 +171,11 @@ def main_ui():
                     options=result_df.index.tolist(),
                     format_func=lambda i: f"{result_df.loc[i, 'OmverpakkingID']} - {result_df.loc[i, 'Totaal stuks']} stuks"
                 )
-                if 'favorites' not in st.session_state:
-                    st.session_state['favorites'] = []
                 if st.button('➕ Opslaan als favoriet'):
                     for i in selected_indices:
-                        st.session_state['favorites'].append(result_df.loc[i].to_dict())
                     st.success(f"{len(selected_indices)} oplossing(en) toegevoegd aan favorieten.")
             else:
                 st.warning("Geen enkele geldige plaatsing gevonden voor dit product met deze marges en limieten.")
-
-    with tab2:
-        st.subheader("2️⃣ Favoriete oplossingen")
-        favs = st.session_state.get("favorites", [])
-        if favs:
-            fav_df = pd.DataFrame(favs)
-            st.dataframe(fav_df)
-            selected_fav = st.radio("🎯 Kies een favoriet voor visualisatie", options=fav_df.index.tolist())
-            st.write(f"Geselecteerde favoriet:")
-            st.json(fav_df.loc[selected_fav].to_dict())
-        else:
-            st.info("Nog geen favorieten geselecteerd.")
-        st.info("Nog geen favorieten geselecteerd.")
 
     with tab3:
         st.subheader("3️⃣ Palletisatie Visualisatie")
