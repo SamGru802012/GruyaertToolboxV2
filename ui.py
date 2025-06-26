@@ -100,11 +100,33 @@ def main_ui():
                     "Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"]) / (prod(r["box_inner"]) + 1e-6) * 100, 1)
                 } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False)
                 st.dataframe(result_df)
+
+                # Checkbox selectie van favorieten
+                selected_indices = st.multiselect(
+                    '✅ Selecteer oplossingen om op te slaan als favoriet',
+                    options=result_df.index.tolist(),
+                    format_func=lambda i: f"{result_df.loc[i, 'OmverpakkingID']} - {result_df.loc[i, 'Totaal stuks']} stuks"
+                )
+                if 'favorites' not in st.session_state:
+                    st.session_state['favorites'] = []
+                if st.button('➕ Opslaan als favoriet'):
+                    for i in selected_indices:
+                        st.session_state['favorites'].append(result_df.loc[i].to_dict())
+                    st.success(f"{len(selected_indices)} oplossing(en) toegevoegd aan favorieten.")
             else:
                 st.warning("Geen enkele geldige plaatsing gevonden voor dit product met deze marges en limieten.")
 
     with tab2:
         st.subheader("2️⃣ Favoriete oplossingen")
+        favs = st.session_state.get("favorites", [])
+        if favs:
+            fav_df = pd.DataFrame(favs)
+            st.dataframe(fav_df)
+            selected_fav = st.radio("🎯 Kies een favoriet voor visualisatie", options=fav_df.index.tolist())
+            st.write(f"Geselecteerde favoriet:")
+            st.json(fav_df.loc[selected_fav].to_dict())
+        else:
+            st.info("Nog geen favorieten geselecteerd.")
         st.info("Nog geen favorieten geselecteerd.")
 
     with tab3:
