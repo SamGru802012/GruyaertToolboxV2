@@ -1,7 +1,5 @@
 """
 import os
-from models.init_db import init_db
-init_db()
 os.makedirs("data", exist_ok=True)
 ==================================================================================
 Tab 2 – Gekozen Oplossingen
@@ -28,6 +26,9 @@ def load_solutions():
     except Exception:
         return pd.DataFrame()
 def visualize_solution(row):
+    if L*B*H == 0 or pl*pw*ph == 0:
+        st.warning("Ongeldige afmetingen voor visualisatie.")
+        return
     if L*B*H == 0 or pl*pw*ph == 0:
         return
     L, B, H = safe_parse_dims(row.get("box_dim", "0x0x0"))

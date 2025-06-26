@@ -1,7 +1,5 @@
 """
 import os
-from models.init_db import init_db
-init_db()
 os.makedirs("data", exist_ok=True)
 ==================================================================================
 Tab 1 – Dooskeuze

@@ -1,7 +1,5 @@
 """
 import os
-from models.init_db import init_db
-init_db()
 os.makedirs("data", exist_ok=True)
 ==================================================================================
 Tab 4 – CRUD voor omverpakkingen
@@ -33,6 +31,9 @@ def tab_crud():
     st.subheader("📦 Beheer Omverpakkingen")
 
     df = load_boxes()
+    # Zorg voor juiste kolommen
+    if df.empty:
+        df = pd.DataFrame(columns=["id", "inner_length", "inner_width", "inner_height", "wall_thickness", "stock", "description", "extra_info"])
     edited_df = st.data_editor(
         df,
         num_rows="dynamic",

@@ -1,7 +1,5 @@
 """
 import os
-from models.init_db import init_db
-init_db()
 os.makedirs("data", exist_ok=True)
 ==================================================================================
 Tab 3 – Palletisatie
@@ -26,6 +24,10 @@ def load_saved_solutions():
     return df
 
 def visualize_pallet(config, pallet_dim=(1200, 800, 1600)):
+    l, w, h = config["orientation"]
+    if l * w * h == 0:
+        st.warning("Ongeldige doosafmetingen voor palletisatie.")
+        return
     fig = go.Figure()
     color_iter = itertools.cycle(px.colors.qualitative.Set3)
     l, w, h = config["orientation"]

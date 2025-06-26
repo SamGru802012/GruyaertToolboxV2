@@ -13,11 +13,13 @@ Deze applicatie helpt bij het optimaliseren van verpakkingen:
 """
 
 import streamlit as st
+from models.init_db import init_db
 from tabs.tab_dooskeuze import tab_dooskeuze
 from tabs.tab_oplossingen import tab_oplossingen
 from tabs.tab_palletisatie import tab_palletisatie
 from tabs.tab_crud import tab_crud
 
+init_db()
 st.set_page_config(layout="wide", page_title="Verpakkingsoptimalisatie")
 
 tab1, tab2, tab3, tab4 = st.tabs([
