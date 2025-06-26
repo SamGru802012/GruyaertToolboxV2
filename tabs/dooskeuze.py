@@ -63,9 +63,7 @@ def dooskeuze_tab():
             if selected is not None:
                 solution = df.loc[selected]
                 fig = visualize_packing(
-                    box_dim=(float(solution["box_inner"].split("x")[0]),
-                             float(solution["box_inner"].split("x")[1]),
-                             float(solution["box_inner"].split("x")[2])),
+                    box_dim=tuple(map(float, solution["box_inner"].split("x"))),
                     product_dim=tuple(map(float, solution["rotation"].split("x"))),
                     rows=int(solution["rows"]),
                     cols=int(solution["columns"]),

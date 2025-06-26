@@ -1,6 +1,5 @@
 
 import plotly.graph_objects as go
-import numpy as np
 import random
 
 def generate_color(index):
@@ -34,7 +33,6 @@ def visualize_packing(box_dim, product_dim, rows, cols, layers, margin=(0,0,0), 
     start_y = wall + margin[1]
     start_z = wall + margin[2]
 
-    # Draw products
     index = 0
     for l in range(layers):
         for r in range(rows):
@@ -48,7 +46,6 @@ def visualize_packing(box_dim, product_dim, rows, cols, layers, margin=(0,0,0), 
                                             color=color, opacity=1.0))
                 index += 1
 
-    # Draw the outer box
     fig.add_trace(create_3d_box(0, 0, 0,
                                 box_dim[0], box_dim[1], box_dim[2],
                                 color='rgba(150,150,150,0.1)', opacity=0.2,
