@@ -67,6 +67,44 @@ def main_ui():
             submitted = st.form_submit_button("Simuleer")
 
         if submitted:
+            # Resultaten beschikbaar? Dan visualiseren
+            if results:
+                result_df = pd.DataFrame([{
+                    'OmverpakkingID': r['box_id'],
+                    'Binnenafm. (LxBxH)': '×'.join(map(str, r['box_inner'])),
+                    'Rijen': r['fit'][0],
+                    'Kolommen': r['fit'][1],
+                    'Lagen': r['fit'][2],
+                    'Totaal stuks': r['total_products'],
+                    'Pallethoogte (mm)': int(r['product_dims'][2] * r['fit'][2]),
+                    'Volume-efficiëntie (%)': round((prod(r['product_dims']) * r['total_products']) / (prod(r['box_inner']) + 1e-6) * 100, 1),
+                    'box_inner': r['box_inner'],
+                    'product_dims': r['product_dims']
+                } for r in results]).sort_values('Volume-efficiëntie (%)', ascending=False).reset_index(drop=True)
+                st.dataframe(result_df.drop(columns=['box_inner', 'product_dims']))
+                import plotly.graph_objects as go
+                selected_idx = st.radio('📊 Selecteer een oplossing om te visualiseren', result_df.index.tolist())
+                r = result_df.loc[selected_idx]
+                L, B, H = r['product_dims']
+                rows, cols, layers = r['Rijen'], r['Kolommen'], r['Lagen']
+                box_L, box_B, box_H = r['box_inner']
+                fig = go.Figure()
+                for z in range(layers):
+                    for y in range(cols):
+                        for x in range(rows):
+                            fig.add_trace(go.Mesh3d(
+                                x=[x*L, x*L+L, x*L+L, x*L, x*L, x*L+L, x*L+L, x*L],
+                                y=[y*B, y*B, y*B+B, y*B+B, y*B, y*B, y*B+B, y*B+B],
+                                z=[z*H, z*H, z*H, z*H, z*H+H, z*H+H, z*H+H, z*H+H],
+                                opacity=0.85, color='skyblue', showscale=False))
+                # Omdoos als transparant
+                fig.add_trace(go.Mesh3d(
+                    x=[0, box_L, box_L, 0, 0, box_L, box_L, 0],
+                    y=[0, 0, box_B, box_B, 0, 0, box_B, box_B],
+                    z=[0, 0, 0, 0, box_H, box_H, box_H, box_H],
+                    opacity=0.1, color='gray', showscale=False))
+                fig.update_layout(scene=dict(aspectmode='data'), title='3D Visualisatie')
+                st.plotly_chart(fig, use_container_width=True)
             # Gebruikersinput verzamelen
             product = {"length": length, "width": width, "height": height}
             margins = {
@@ -91,35 +129,22 @@ def main_ui():
                 st.success(f"Gevonden {len(results)} mogelijke plaatsingen in omdozen.")
                 result_df = pd.DataFrame([{
                     "OmverpakkingID": r["box_id"],
-                    "Binnenafm. (LxBxH)": "×".join(map(str, r["box_inner"])),
                     "Rijen": r["fit"][0],
                     "Kolommen": r["fit"][1],
                     "Lagen": r["fit"][2],
                     "Totaal stuks": r["total_products"],
-                    "Pallethoogte (mm)": int(r["product_dims"][2] * r["fit"][2]),
-                    "Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"]) / (prod(r["box_inner"]) + 1e-6) * 100, 1),
-                    "box_inner": r["box_inner"],
-                    "product_dims": r["product_dims"]
                 } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False).reset_index(drop=True)
 
                 # Selecteer oplossing voor visualisatie
-                selected_idx = st.radio('📊 Selecteer een oplossing om te visualiseren', result_df.index.tolist())
-                selected_row = result_df.loc[selected_idx]
 
                 # Visualisatie in Plotly
-                import plotly.graph_objects as go
 
-                box_l, box_w, box_h = selected_row['box_inner']
-                prod_l, prod_w, prod_h = selected_row['product_dims']
-                rows, cols, layers = selected_row['Rijen'], selected_row['Kolommen'], selected_row['Lagen']
 
-                fig = go.Figure()
 
                 # Voeg alle producten toe als blokken
                 for z in range(layers):
                     for y in range(cols):
                         for x in range(rows):
-                            fig.add_trace(go.Mesh3d(
                                 x=[x*prod_l, x*prod_l + prod_l, x*prod_l + prod_l, x*prod_l, x*prod_l, x*prod_l + prod_l, x*prod_l + prod_l, x*prod_l],
                                 y=[y*prod_w, y*prod_w, y*prod_w + prod_w, y*prod_w + prod_w, y*prod_w, y*prod_w, y*prod_w + prod_w, y*prod_w + prod_w],
                                 z=[z*prod_h, z*prod_h, z*prod_h, z*prod_h, z*prod_h + prod_h, z*prod_h + prod_h, z*prod_h + prod_h, z*prod_h + prod_h],
@@ -129,7 +154,6 @@ def main_ui():
                             ))
 
                 # Omdoos als transparant wireframe
-                fig.add_trace(go.Mesh3d(
                     x=[0, box_l, box_l, 0, 0, box_l, box_l, 0],
                     y=[0, 0, box_w, box_w, 0, 0, box_w, box_w],
                     z=[0, 0, 0, 0, box_h, box_h, box_h, box_h],
@@ -138,21 +162,18 @@ def main_ui():
                     showscale=False
                 ))
 
-                fig.update_layout(scene=dict(
                     xaxis_title='L',
                     yaxis_title='B',
                     zaxis_title='H',
                     aspectmode='data'),
                     title='3D Visualisatie van Producten in Omdoos')
 
-                st.plotly_chart(fig, use_container_width=True)
 
                 # Checkbox per rij via expander
                 st.markdown("### ✅ Selecteer favorieten")
                 selections = []
                 for i, row in result_df.iterrows():
                     with st.expander(f"{row['OmverpakkingID']} — {row['Totaal stuks']} stuks"):
-                        st.write(row.drop(["box_inner", "product_dims"]))
                         if st.checkbox("Toevoegen aan favorieten", key=f"fav_{i}"):
                             selections.append(row.to_dict())
 
