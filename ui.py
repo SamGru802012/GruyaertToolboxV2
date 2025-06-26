@@ -174,8 +174,6 @@ def main_ui():
                 selections = []
                 for i, row in result_df.iterrows():
                     with st.expander(f"{row['OmverpakkingID']} — {row['Totaal stuks']} stuks"):
-                        if st.checkbox("Toevoegen aan favorieten", key=f"fav_{i}"):
-                            selections.append(row.to_dict())
 
 
                 if st.button("➕ Voeg geselecteerde favorieten toe"):
@@ -187,14 +185,11 @@ def main_ui():
                     st.success(f"{len(selected)} favoriet(en) toegevoegd.")
 
                 # Checkbox selectie van favorieten
-                selected_indices = st.multiselect(
                     '✅ Selecteer oplossingen om op te slaan als favoriet',
                     options=result_df.index.tolist(),
                     format_func=lambda i: f"{result_df.loc[i, 'OmverpakkingID']} - {result_df.loc[i, 'Totaal stuks']} stuks"
                 )
                 if st.button('➕ Opslaan als favoriet'):
-                    for i in selected_indices:
-                    st.success(f"{len(selected_indices)} oplossing(en) toegevoegd aan favorieten.")
             else:
                 st.warning("Geen enkele geldige plaatsing gevonden voor dit product met deze marges en limieten.")
 
