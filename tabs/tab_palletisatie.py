@@ -1,4 +1,8 @@
 """
+import os
+from models.init_db import init_db
+init_db()
+os.makedirs("data", exist_ok=True)
 ==================================================================================
 Tab 3 – Palletisatie
 ==================================================================================
@@ -55,6 +59,17 @@ def visualize_pallet(config, pallet_dim=(1200, 800, 1600)):
     ))
     st.plotly_chart(fig, use_container_width=True)
 
+
+def safe_parse_dims(dim_str):
+    try:
+        if not isinstance(dim_str, str):
+            return (0.0, 0.0, 0.0)
+        parts = str(dim_str).split("x")
+        if len(parts) != 3:
+            return (0.0, 0.0, 0.0)
+        return tuple(map(float, parts))
+    except Exception:
+        return (0.0, 0.0, 0.0)
 def tab_palletisatie():
     st.subheader("🧱 Palletisatie Visualisatie")
 
@@ -67,7 +82,7 @@ def tab_palletisatie():
                         format_func=lambda i: f"{df.loc[i, 'product_ref']} - doos {df.loc[i, 'box_id']}")
     row = df.loc[selected]
 
-    box_L, box_B, box_H = map(float, row["box_dim"].split("x"))
+    box_L, box_B, box_H = safe_parse_dims(row.get("box_dim", "0x0x0"))
     box_rotations = set(itertools.permutations([box_L, box_B, box_H]))
 
     best_config = None

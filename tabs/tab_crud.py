@@ -1,4 +1,8 @@
 """
+import os
+from models.init_db import init_db
+init_db()
+os.makedirs("data", exist_ok=True)
 ==================================================================================
 Tab 4 – CRUD voor omverpakkingen
 ==================================================================================
@@ -13,11 +17,13 @@ import sqlite3
 DB_PATH = "data/dozen_db.sqlite"
 
 def load_boxes():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql("SELECT * FROM boxes", conn)
-    conn.close()
-    return df
-
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        df = pd.read_sql("SELECT * FROM boxes", conn)
+        conn.close()
+        return df
+    except Exception:
+        return pd.DataFrame()
 def save_boxes(df):
     conn = sqlite3.connect(DB_PATH)
     df.to_sql("boxes", conn, if_exists="replace", index=False)

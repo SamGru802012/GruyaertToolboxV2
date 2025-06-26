@@ -1,4 +1,8 @@
 """
+import os
+from models.init_db import init_db
+init_db()
+os.makedirs("data", exist_ok=True)
 ==================================================================================
 Tab 1 – Dooskeuze
 ==================================================================================
@@ -19,11 +23,13 @@ import plotly.express as px
 DB_PATH = "data/dozen_db.sqlite"
 
 def load_data():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql("SELECT * FROM boxes", conn)
-    conn.close()
-    return df
-
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        df = pd.read_sql("SELECT * FROM boxes", conn)
+        conn.close()
+        return df
+    except Exception:
+        return pd.DataFrame()
 def generate_rotations(l, b, h):
     return set(itertools.permutations([l, b, h]))
 
@@ -64,6 +70,8 @@ def tab_dooskeuze():
                     continue
                 volume = pl * pw * ph * total
                 box_volume = usable_L * usable_B * usable_H
+                if box_volume == 0:
+                    continue
                 eff = round((volume / box_volume) * 100, 2)
                 results.append({
                     "rotation": f"{pl}x{pw}x{ph}",

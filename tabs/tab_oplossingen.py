@@ -1,4 +1,8 @@
 """
+import os
+from models.init_db import init_db
+init_db()
+os.makedirs("data", exist_ok=True)
 ==================================================================================
 Tab 2 – Gekozen Oplossingen
 ==================================================================================
@@ -16,14 +20,18 @@ import itertools
 DB_PATH = "data/dozen_db.sqlite"
 
 def load_solutions():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql("SELECT * FROM saved_solutions", conn)
-    conn.close()
-    return df
-
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        df = pd.read_sql("SELECT * FROM saved_solutions", conn)
+        conn.close()
+        return df
+    except Exception:
+        return pd.DataFrame()
 def visualize_solution(row):
-    L, B, H = map(float, row["box_dim"].split("x"))
-    pl, pw, ph = map(float, row["product_rotation"].split("x"))
+    if L*B*H == 0 or pl*pw*ph == 0:
+        return
+    L, B, H = safe_parse_dims(row.get("box_dim", "0x0x0"))
+    pl, pw, ph = safe_parse_dims(row.get("product_rotation", "0x0x0"))
     rows, cols, layers = row["rows"], row["columns"], row["layers"]
 
     fig = go.Figure()
@@ -59,6 +67,17 @@ def visualize_solution(row):
     ))
     st.plotly_chart(fig, use_container_width=True)
 
+
+def safe_parse_dims(dim_str):
+    try:
+        if not isinstance(dim_str, str):
+            return (0.0, 0.0, 0.0)
+        parts = str(dim_str).split("x")
+        if len(parts) != 3:
+            return (0.0, 0.0, 0.0)
+        return tuple(map(float, parts))
+    except Exception:
+        return (0.0, 0.0, 0.0)
 def tab_oplossingen():
     st.subheader("📋 Opgeslagen oplossingen")
 
