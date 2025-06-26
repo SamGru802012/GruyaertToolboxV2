@@ -40,6 +40,7 @@ def main_ui():
 
         # Formulier voor producteigenschappen + simulatie
         with st.form("product_form"):
+            product_ref = st.text_input("Product Referentie", "")
             # Afmetingen van het product
             col1, col2, col3 = st.columns(3)
             length = col1.number_input("Lengte (mm)", min_value=1.0)
@@ -88,11 +89,15 @@ def main_ui():
             if results:
                 st.success(f"Gevonden {len(results)} mogelijke plaatsingen in omdozen.")
                 result_df = pd.DataFrame([{
-                    "Omdoos ID": r["box_id"],
-                    "Rotatie (LxBxH)": "×".join(map(str, r["rotation"])),
-                    "Rijen × Kolommen × Lagen": "×".join(map(str, r["fit"])),
-                    "Totaal aantal producten": r["total_products"]
-                } for r in results])
+                    "OmverpakkingID": r["box_id"],
+                    "Binnenafm. (LxBxH)": "×".join(map(str, r["box_inner"])),
+                    "Rijen": r["fit"][0],
+                    "Kolommen": r["fit"][1],
+                    "Lagen": r["fit"][2],
+                    "Totaal stuks": r["total_products"],
+                    "Pallethoogte (mm)": int(r["product_dims"][2] * r["fit"][2]),
+                    "Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"]) / (prod(r["box_inner"]) + 1e-6) * 100, 1)
+                } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False)
                 st.dataframe(result_df)
             else:
                 st.warning("Geen enkele geldige plaatsing gevonden voor dit product met deze marges en limieten.")
