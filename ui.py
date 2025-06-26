@@ -98,11 +98,25 @@ def main_ui():
                     "Totaal stuks": r["total_products"],
                     "Pallethoogte (mm)": int(r["product_dims"][2] * r["fit"][2]),
                     "Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"]) / (prod(r["box_inner"]) + 1e-6) * 100, 1),
-                    "Favoriet": False
+                    "box_inner": r["box_inner"],
+                    "product_dims": r["product_dims"]
                 } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False).reset_index(drop=True)
 
-                # Bewerkbare datagrid met checkbox voor favorieten
-                edited_df = st.data_editor(result_df, num_rows="dynamic", use_container_width=True)
+                # Checkbox per rij via expander
+                st.markdown("### ✅ Selecteer favorieten")
+                selections = []
+                for i, row in result_df.iterrows():
+                    with st.expander(f"{row['OmverpakkingID']} — {row['Totaal stuks']} stuks"):
+                        st.write(row.drop(["box_inner", "product_dims"]))
+                        if st.checkbox("Toevoegen aan favorieten", key=f"fav_{i}"):
+                            selections.append(row.to_dict())
+
+                if "favorites" not in st.session_state:
+                    st.session_state["favorites"] = []
+
+                if st.button("➕ Voeg geselecteerde favorieten toe"):
+                    st.session_state["favorites"].extend(selections)
+                    st.success(f"{len(selections)} favoriet(en) toegevoegd.")
 
                 if "favorites" not in st.session_state:
                     st.session_state["favorites"] = []
