@@ -154,8 +154,9 @@ def main_ui():
                     "Lagen": r["fit"][2],
                     "Totaal stuks": r["total_products"],
                     "Pallethoogte (mm)": int(r["product_dims"][2] * r["fit"][2]),
-                    "Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"]) \
-                                                / (prod(r["box_inner"]) + 1e-6) * 100, 1)
+                    "Volume-efficiëntie (%)": round(
+                        (prod(r["product_dims"]) * r["total_products"]) / (prod(r["box_inner"]) + 1e-6) * 100, 1
+                    )
                 } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False)
                                                         / (prod(r["box_inner"]) + 1e-6) * 100, 1)
                 } for r in results]).sort_values("🧮 Volume-efficiëntie (%)", ascending=False)
