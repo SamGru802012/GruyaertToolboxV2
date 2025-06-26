@@ -4,6 +4,7 @@ Tab 1 – Dooskeuze
 ==================================================================================
 Gebruiker geeft productafmetingen en marges op. Toont voor elke doos in voorraad
 hoeveel producten erin passen per rotatie, inclusief volume-efficiëntie.
+Laat selecties toe voor opslag.
 """
 
 import streamlit as st
@@ -12,7 +13,6 @@ import sqlite3
 from core.optimizer import calculate_fits
 import os
 
-# DB-path vastleggen
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "..", "data", "dozen_db.sqlite")
 
@@ -65,7 +65,8 @@ def render():
                 "layers": conf["layers"],
                 "total_units": conf["total"],
                 "pallet_height": conf["layers"] * (l if conf["rotation"].startswith(str(l)) else h),
-                "efficiency": conf["efficiency"]
+                "efficiency": conf["efficiency"],
+                "selecteer": False
             })
 
     if not resultaten:
@@ -73,6 +74,8 @@ def render():
         return
 
     result_df = pd.DataFrame(resultaten)
-    st.dataframe(result_df)
+    st.markdown("### 📄 Selecteer oplossingen om op te slaan")
+    edited = st.data_editor(result_df, use_container_width=True, num_rows="dynamic", key="selecteer_resultaat")
 
-    st.session_state["laatste_resultaten"] = result_df
+    # Sla in session state de hele bewerkte lijst op
+    st.session_state["laatste_resultaten"] = edited
