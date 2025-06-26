@@ -1,28 +1,43 @@
+"""
+Pack Optimizer App - Streamlit
+
+Beschrijving:
+Deze applicatie optimaliseert verpakkingen door te berekenen hoe een product (in 6 mogelijke oriëntaties)
+in verschillende omdozen past. De gebruiker kan marges, dooslimieten en productdimensies instellen.
+De simulaties tonen hoeveel producten per doos mogelijk zijn op basis van opgegeven limieten.
+
+Belangrijke Functionaliteiten:
+- Rotatie-simulatie: 6 rotaties van elk product worden getest in elke doos
+- Marges: gebruikers kunnen afzonderlijk marges per richting instellen (L/B/H)
+- Limieten: optionele beperking op max. rijen, kolommen en lagen per doos
+- Database: dozen worden geladen vanuit een lokale SQLite database
+- UI: Streamlit-applicatie met tabbladen en intuïtieve invoer
+
+Samenwerking:
+Deze code is geschreven voor iteratieve samenwerking met de GPT "Python & Streamlit Expert".
+Bij het opstarten van een nieuwe sessie, kan deze uitleg als context dienen om direct verder te bouwen
+op de bestaande architectuur zonder herhaling van vereisten.
+"""
+
 from itertools import permutations
 import math
 
+# Genereert 6 unieke rotaties van een product (L, B, H)
 def generate_rotations(dimensions):
-    "Genereert 6 unieke (L, W, H) rotaties van een product."
     return list(set(permutations(dimensions)))
 
-def calculate_fit(inner_dims, product_dims):
-    "Berekent hoeveel producten er in een doos passen per rotatie (rijen, kolommen, lagen)."
-    return tuple(math.floor(i / p) for i, p in zip(inner_dims, product_dims))
+# Berekent het aantal producten dat past in een doos per rotatie met limieten
+def calculate_fit(inner_dims, product_dims, limits):
+    return tuple(min(math.floor(i / p), lim) for i, p, lim in zip(inner_dims, product_dims, limits))
 
-def simulate_product_in_boxes(product, margins, boxes):
-    """
-    Simuleert alle rotaties van een product in alle dozen.
-
-    product: dict met keys 'length', 'width', 'height'
-    margins: dict met keys 'margin_length', 'margin_width', 'margin_height'
-    boxes: lijst van dicts met inner/outer afmetingen
-    """
+# Hoofdfunctie: simuleer alle geldige plaatsingen van een product in elke doos
+def simulate_product_in_boxes(product, margins, boxes, limits):
     results = []
     product_dims = (product["length"], product["width"], product["height"])
     rotations = generate_rotations(product_dims)
 
     for box in boxes:
-        # Corrigeerbare netto binnenafmetingen
+        # Corrigeer binnenmaten op basis van marges
         inner = (
             box["inner_length"] - margins["margin_length"],
             box["inner_width"] - margins["margin_width"],
@@ -30,7 +45,8 @@ def simulate_product_in_boxes(product, margins, boxes):
         )
 
         for rotation in rotations:
-            fit = calculate_fit(inner, rotation)
+            lims = (limits["max_rows"], limits["max_cols"], limits["max_layers"])
+            fit = calculate_fit(inner, rotation, lims)
             total = fit[0] * fit[1] * fit[2]
             if total > 0:
                 results.append({
@@ -42,6 +58,5 @@ def simulate_product_in_boxes(product, margins, boxes):
                     "product_dims": rotation
                 })
 
-    # Sorteer op meest efficiënte vulling
     results.sort(key=lambda r: r["total_products"], reverse=True)
     return results
