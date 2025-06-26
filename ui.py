@@ -99,9 +99,6 @@ def main_ui():
                     "Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"]) / (prod(r["box_inner"]) + 1e-6) * 100, 1)
                 } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False)
                 st.dataframe(result_df)
-                if not df.empty:
-                    selected_idx = st.radio('📊 Selecteer een oplossing voor visualisatie', df.index.tolist())
-                    r = df.loc[selected_idx]
             else:
                 st.warning("Geen enkele geldige plaatsing gevonden voor dit product met deze marges en limieten.")
 
