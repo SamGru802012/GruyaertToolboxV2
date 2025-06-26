@@ -55,12 +55,14 @@ def dooskeuze_tab():
             df["volume_efficiency"] = df["efficiency"]
 
             st.markdown("### 📊 Resultaten")
-            selected = st.radio("Selecteer een oplossing voor visualisatie:", df.index, horizontal=True)
-            favorites = st.multiselect("✅ Kies favorieten", df.index, default=[])
+            st.dataframe(df, use_container_width=True)
 
-            st.dataframe(df)
+            st.markdown("#### 🔘 Visualisatie-opties")
+            index_options = df.index.tolist()
+            selected = st.radio("Selecteer een oplossing voor 3D-weergave:", index_options, format_func=lambda i: f"#{i}", horizontal=True)
+            favorites = st.multiselect("✅ Selecteer favoriete oplossingen", index_options, default=[])
 
-            if selected is not None:
+            if selected is not None and selected in df.index:
                 solution = df.loc[selected]
                 fig = visualize_packing(
                     box_dim=tuple(map(float, solution["box_inner"].split("x"))),
