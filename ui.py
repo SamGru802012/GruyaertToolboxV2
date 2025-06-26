@@ -97,9 +97,20 @@ def main_ui():
                     "Lagen": r["fit"][2],
                     "Totaal stuks": r["total_products"],
                     "Pallethoogte (mm)": int(r["product_dims"][2] * r["fit"][2]),
-                    "Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"]) / (prod(r["box_inner"]) + 1e-6) * 100, 1)
-                } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False)
-                st.dataframe(result_df)
+                    "Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"]) / (prod(r["box_inner"]) + 1e-6) * 100, 1),
+                    "Favoriet": False
+                } for r in results]).sort_values("Volume-efficiëntie (%)", ascending=False).reset_index(drop=True)
+
+                # Bewerkbare datagrid met checkbox voor favorieten
+                edited_df = st.data_editor(result_df, num_rows="dynamic", use_container_width=True)
+
+                if "favorites" not in st.session_state:
+                    st.session_state["favorites"] = []
+
+                if st.button("➕ Voeg geselecteerde favorieten toe"):
+                    selected = edited_df[edited_df["Favoriet"] == True].drop(columns=["Favoriet"])
+                    st.session_state["favorites"].extend(selected.to_dict(orient="records"))
+                    st.success(f"{len(selected)} favoriet(en) toegevoegd.")
 
                 # Checkbox selectie van favorieten
                 selected_indices = st.multiselect(
