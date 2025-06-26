@@ -1,5 +1,6 @@
 import streamlit as st
 from data_manager import init_database, get_all_boxes
+from optimizer import simulate_product_in_boxes
 import pandas as pd
 
 def main_ui():
@@ -14,15 +15,38 @@ def main_ui():
             width = col2.number_input("Breedte (mm)", min_value=1.0)
             height = col3.number_input("Hoogte (mm)", min_value=1.0)
 
-            col4, col5 = st.columns(2)
-            margin = col4.number_input("Marges in doos (mm)", min_value=0.0, value=0.0)
-            thickness = col5.number_input("Dikte van omverpakking (mm)", min_value=0.0, value=3.0)
+            col4, col5, col6 = st.columns(3)
+            margin_l = col4.number_input("Marge lengte (mm)", min_value=0.0, value=0.0)
+            margin_w = col5.number_input("Marge breedte (mm)", min_value=0.0, value=0.0)
+            margin_h = col6.number_input("Marge hoogte (mm)", min_value=0.0, value=0.0)
+
+            thickness = st.number_input("Dikte van omverpakking (mm)", min_value=0.0, value=3.0)
 
             submitted = st.form_submit_button("Simuleer")
 
         if submitted:
-            st.info("Simulatie volgt later...")
-            st.write(f"Productafmetingen: {length}×{width}×{height} mm")
+            product = {"length": length, "width": width, "height": height}
+            margins = {
+                "margin_length": margin_l,
+                "margin_width": margin_w,
+                "margin_height": margin_h
+            }
+
+            boxes_df = get_all_boxes()
+            boxes = boxes_df.to_dict(orient="records")
+            results = simulate_product_in_boxes(product, margins, boxes)
+
+            if results:
+                st.success(f"Gevonden {len(results)} mogelijke plaatsingen in omdozen.")
+                result_df = pd.DataFrame([{
+                    "Omdoos ID": r["box_id"],
+                    "Rotatie (LxBxH)": "×".join(map(str, r["rotation"])),
+                    "Rijen × Kolommen × Lagen": "×".join(map(str, r["fit"])),
+                    "Totaal aantal producten": r["total_products"]
+                } for r in results])
+                st.dataframe(result_df)
+            else:
+                st.warning("Geen enkele geldige plaatsing gevonden voor dit product met deze marges.")
 
     with tab2:
         st.subheader("2️⃣ Favoriete oplossingen")
