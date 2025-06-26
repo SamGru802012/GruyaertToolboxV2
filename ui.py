@@ -30,7 +30,6 @@ def main_ui():
     st.title("📦 Pack Optimizer")
 
     # Tabs voor navigatie door de app
-    tab1, tab2, tab3 = st.tabs([
         "Product Invoer & Simulatie",
         "Favorieten & Export",
         "Palletisatie"
@@ -103,7 +102,6 @@ def main_ui():
             else:
                 st.warning("Geen enkele geldige plaatsing gevonden voor dit product met deze marges en limieten.")
 
-    with tab3:
         st.subheader("3️⃣ Palletisatie Visualisatie")
         st.info("Selecteer eerst een oplossing.")
 
