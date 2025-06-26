@@ -23,6 +23,7 @@ import streamlit as st
 from data_manager import init_database, get_all_boxes
 from optimizer import simulate_product_in_boxes
 import pandas as pd
+from math import prod
 
 # Hoofdinterface voor de app
 def main_ui():
