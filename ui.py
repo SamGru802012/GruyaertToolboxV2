@@ -88,13 +88,11 @@ def main_ui():
             if results:
                 st.success(f"Gevonden {len(results)} mogelijke plaatsingen in omdozen.")
                 result_df = pd.DataFrame([{
-                    "📦 Omdoos ID": r["box_id"],
-                    "📐 Rotatie (L×B×H)": "×".join(map(str, r["rotation"])),
-                    "🔢 Layout (R×K×L)": "×".join(map(str, r["fit"])),
-                    "📦 Totaal aantal producten": r["total_products"],
-                    "🧮 Volume-efficiëntie (%)": round((prod(r["product_dims"]) * r["total_products"])
-                                                        / (prod(r["box_inner"]) + 1e-6) * 100, 1)
-                } for r in results]).sort_values("🧮 Volume-efficiëntie (%)", ascending=False)
+                    "Omdoos ID": r["box_id"],
+                    "Rotatie (LxBxH)": "×".join(map(str, r["rotation"])),
+                    "Rijen × Kolommen × Lagen": "×".join(map(str, r["fit"])),
+                    "Totaal aantal producten": r["total_products"]
+                } for r in results])
                 st.dataframe(result_df)
             else:
                 st.warning("Geen enkele geldige plaatsing gevonden voor dit product met deze marges en limieten.")
