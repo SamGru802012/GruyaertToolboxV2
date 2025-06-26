@@ -29,7 +29,7 @@ def main_ui():
     st.title("📦 Pack Optimizer")
 
     # Tabs voor navigatie door de app
-    tab1, tab2, tab3 = st.tabs([
+    tab1, tab2 = st.tabs([
         "Product Invoer & Simulatie",
         "Palletisatie"
     ])
