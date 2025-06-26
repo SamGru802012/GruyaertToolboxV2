@@ -4,7 +4,7 @@ Tab 1 – Dooskeuze
 ==================================================================================
 Gebruiker geeft productafmetingen en marges op. Toont voor elke doos in voorraad
 hoeveel producten erin passen per rotatie, inclusief volume-efficiëntie.
-Laat selecties toe voor opslag.
+Laat selecties toe voor opslag via formulier.
 """
 
 import streamlit as st
@@ -74,8 +74,17 @@ def render():
         return
 
     result_df = pd.DataFrame(resultaten)
-    st.markdown("### 📄 Selecteer oplossingen om op te slaan")
-    edited = st.data_editor(result_df, use_container_width=True, num_rows="dynamic", key="selecteer_resultaat")
+    result_df["selecteer"] = result_df["selecteer"].astype(bool)
 
-    # Sla in session state de hele bewerkte lijst op
-    st.session_state["laatste_resultaten"] = edited
+    with st.form("opslagformulier"):
+        st.markdown("### 📄 Selecteer oplossingen om op te slaan")
+        edited = st.data_editor(result_df, use_container_width=True, num_rows="dynamic")
+        submitted = st.form_submit_button("💾 Bevestig selectie")
+
+    if submitted:
+        selectie = edited[edited["selecteer"] == True].drop(columns=["selecteer"])
+        if selectie.empty:
+            st.warning("Geen rijen geselecteerd.")
+        else:
+            st.session_state["laatste_resultaten"] = selectie
+            st.success(f"{len(selectie)} geselecteerde oplossing(en) klaar voor opslag.")
