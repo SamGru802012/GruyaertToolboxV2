@@ -18,7 +18,11 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 
-DB_PATH = "data/dozen_db.sqlite"
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "..", "data", "dozen_db.sqlite")
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+
 
 def load_data():
     try:

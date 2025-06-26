@@ -1,13 +1,12 @@
 import sqlite3
 import os
-
-DB_PATH = "data/dozen_db.sqlite"
-os.makedirs("data", exist_ok=True)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, '..', 'data', 'dozen_db.sqlite')
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    # Boxes tabel
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS boxes (
         id TEXT PRIMARY KEY,
@@ -20,7 +19,6 @@ def init_db():
         extra_info TEXT
     )
     """)
-    # Oplossingen tabel
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS saved_solutions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
