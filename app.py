@@ -8,7 +8,6 @@ import plotly.io as pio
 st.set_page_config(page_title="Verpakkingsoptimalisatie", layout="wide")
 db.init_db()
 
-# Init session state
 if "undo_stack" not in st.session_state:
     st.session_state.undo_stack = []
 
@@ -18,7 +17,6 @@ if "solutions" not in st.session_state:
 if "selected_solution" not in st.session_state:
     st.session_state.selected_solution = None
 
-# Tabs
 tab1, tab2, tab3, tab4 = st.tabs(["🔍 Verpakkingsoptimalisatie", "⭐ Geselecteerde oplossingen", "📦 Palletisatie", "🗃️ Dozenbeheer"])
 
 with tab1:
@@ -36,22 +34,28 @@ with tab1:
             marge_l = st.number_input("Marge lengte (mm)", min_value=0, value=0)
             marge_b = st.number_input("Marge breedte (mm)", min_value=0, value=0)
             marge_h = st.number_input("Marge hoogte (mm)", min_value=0, value=0)
-            max_rijen = st.number_input("Max rijen (langs lengte-as)", min_value=0, value=10)
-            max_kolommen = st.number_input("Max kolommen (langs breedte-as)", min_value=0, value=10)
-            max_lagen = st.number_input("Max lagen (gestapeld in hoogte)", min_value=0, value=10)
+            max_rijen = st.number_input("Max rijen (langs lengte-as)", min_value=0, value=0)
+            max_kolommen = st.number_input("Max kolommen (langs breedte-as)", min_value=0, value=0)
+            max_lagen = st.number_input("Max lagen (gestapeld in hoogte)", min_value=0, value=0)
 
         submitted = st.form_submit_button("➕ Bereken optimalisaties")
 
     if submitted:
         doos_df = db.fetch_boxes()
-        product_afm = [product_l, product_b, product_h]
-        marges = [marge_l, marge_b, marge_h]
-        limieten = [max_rijen, max_kolommen, max_lagen]
-        resultaten = algorithm.optimize_packaging(product_afm, marges, doos_df, limieten)
-
-        for res in resultaten:
-            res["product_ref"] = product_ref
-        st.session_state.solutions = resultaten
+        if doos_df.empty:
+            st.warning("⚠️ Geen dozen beschikbaar in de database.")
+        else:
+            product_afm = [product_l, product_b, product_h]
+            marges = [marge_l, marge_b, marge_h]
+            limieten = [max_rijen, max_kolommen, max_lagen]
+            resultaten = algorithm.optimize_packaging(product_afm, marges, doos_df, limieten)
+            if not resultaten:
+                st.warning("❌ Geen geldige oplossingen gevonden.")
+            else:
+                for res in resultaten:
+                    res["product_ref"] = product_ref
+                st.session_state.solutions = resultaten
+                st.success(f"{len(resultaten)} oplossingen gevonden.")
 
     if st.session_state.solutions:
         df = pd.DataFrame(st.session_state.solutions)
@@ -108,7 +112,6 @@ with tab3:
 
 with tab4:
     st.header("🗃️ Dozenbeheer")
-
     doos_data = db.fetch_boxes()
     if doos_data.empty:
         st.warning("Geen dozen gevonden in de database.")
@@ -118,7 +121,7 @@ with tab4:
         if st.button("💾 Opslaan wijzigingen"):
             conn = db.get_connection()
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM boxes")  # overschrijf volledige set
+            cursor.execute("DELETE FROM boxes")
             for _, row in edited.iterrows():
                 cursor.execute("""
                     INSERT INTO boxes (id, binnen_l, binnen_b, binnen_h, wanddikte, stock, omschrijving)
