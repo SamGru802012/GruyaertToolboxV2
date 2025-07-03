@@ -40,7 +40,7 @@ def render_3d_visualisatie(selection):
     draw_box(fig, 0, 0, 0, l, b, h, "lightgray", "Doos")
 
     # Productblokken per laag
-    kleuren = ["red", "green", "blue", "orange", "purple", "cyan"]
+    kleuren = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf"]
     for z in range(lagen):
         for y in range(kolommen):
             for x in range(rijen):
@@ -50,7 +50,7 @@ def render_3d_visualisatie(selection):
                 dx = l / rijen
                 dy = b / kolommen
                 dz = h / lagen
-                kleur = kleuren[z % len(kleuren)]
+                kleur = kleuren[(z * kolommen * rijen + y * rijen + x) % len(kleuren)]
                 draw_box(fig, px, py, pz, dx, dy, dz, kleur, f"Product {z+1}")
 
     fig.update_layout(
@@ -123,7 +123,7 @@ def render_pallet_tab():
                 px = x * dx
                 py = y * dy
                 pz = pallet_basis_hoogte + z * dz
-                kleur = kleuren[z % len(kleuren)]
+                kleur = kleuren[(z * kolommen * rijen + y * rijen + x) % len(kleuren)]
                 draw_box(fig, px, py, pz, dx, dy, dz, kleur)
 
     draw_box(fig, 0, 0, 0, pallet_l, pallet_b, pallet_basis_hoogte, "gray", "Pallet")
