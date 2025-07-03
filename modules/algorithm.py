@@ -30,9 +30,9 @@ def calculate_fit(box, product, margins, limits):
 
     if limits:
         max_r, max_k, max_l = limits
-        rijen = min(rijen, max_r)
-        kolommen = min(kolommen, max_k)
-        lagen = min(lagen, max_l)
+        if max_r > 0 and rijen != max_r: return None
+        if max_k > 0 and kolommen != max_k: return None
+        if max_l > 0 and lagen != max_l: return None
 
     totaal = rijen * kolommen * lagen
     doos_volume = binnen_l * binnen_b * binnen_h
@@ -126,7 +126,7 @@ def render_optimization_tab():
         else:
             st.warning("Geen geldige verpakkingsoplossingen gevonden.")
 
-    if "solutions" in st.session_state and len(st.session_state.solutions) > 0:
+    if st.session_state.get("solutions") is not None and not st.session_state.solutions.empty:
         df = st.session_state.solutions.copy()
         selected = st.radio("Selecteer een oplossing voor actie", df.index, horizontal=True)
         actie_col1, actie_col2, actie_col3 = st.columns(3)
