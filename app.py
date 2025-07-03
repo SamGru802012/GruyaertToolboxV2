@@ -19,7 +19,7 @@ if "selected_solution" not in st.session_state:
     st.session_state.selected_solution = None
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["🔍 Verpakkingsoptimalisatie", "⭐ Geselecteerde oplossingen", "📦 Palletisatie"])
+tab1, tab2, tab3, tab4 = st.tabs(["🔍 Verpakkingsoptimalisatie", "⭐ Geselecteerde oplossingen", "📦 Palletisatie", "🗃️ Dozenbeheer"])
 
 with tab1:
     st.header("🔍 Verpakkingsoptimalisatie")
@@ -105,3 +105,33 @@ with tab3:
 
     if pallet_submit:
         st.success("Palletisatiefunctionaliteit wordt later verder uitgewerkt.")
+
+with tab4:
+    st.header("🗃️ Dozenbeheer")
+
+    doos_data = db.fetch_boxes()
+    if doos_data.empty:
+        st.warning("Geen dozen gevonden in de database.")
+    else:
+        edited = st.data_editor(doos_data, num_rows="dynamic", use_container_width=True)
+
+        if st.button("💾 Opslaan wijzigingen"):
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM boxes")  # overschrijf volledige set
+            for _, row in edited.iterrows():
+                cursor.execute("""
+                    INSERT INTO boxes (id, binnen_l, binnen_b, binnen_h, wanddikte, stock, omschrijving)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    str(row["id"]),
+                    row["binnen_l"],
+                    row["binnen_b"],
+                    row["binnen_h"],
+                    row["wanddikte"],
+                    row["stock"],
+                    row["omschrijving"]
+                ))
+            conn.commit()
+            conn.close()
+            st.success("Dozen succesvol opgeslagen.")
