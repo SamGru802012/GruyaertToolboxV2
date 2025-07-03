@@ -41,6 +41,8 @@ with tab1:
         submitted = st.form_submit_button("➕ Bereken optimalisaties")
 
     if submitted:
+    st.session_state.solutions = []
+    st.session_state.calculated = False
         doos_df = db.fetch_boxes()
         if doos_df.empty:
             st.warning("⚠️ Geen dozen beschikbaar in de database.")
