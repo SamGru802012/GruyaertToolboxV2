@@ -4,7 +4,6 @@ import numpy as np
 import json
 
 def generate_rotations(dimensions):
-    # Genereer alle unieke rotaties van (L, B, H)
     return list(set(itertools.permutations(dimensions)))
 
 def calculate_fit(box_dim, product_dim, marges, limieten):
@@ -15,11 +14,10 @@ def calculate_fit(box_dim, product_dim, marges, limieten):
     kolommen = int(binnen_b // product_b)
     lagen = int(binnen_h // product_h)
 
-    if limieten:
-        max_r, max_k, max_l = limieten
-        if max_r and rijen > max_r: rijen = max_r
-        if max_k and kolommen > max_k: kolommen = max_k
-        if max_l and lagen > max_l: lagen = max_l
+    max_r, max_k, max_l = limieten
+    if max_r > 0 and rijen != max_r: return 0, 0, 0, 0
+    if max_k > 0 and kolommen != max_k: return 0, 0, 0, 0
+    if max_l > 0 and lagen != max_l: return 0, 0, 0, 0
 
     totaal = rijen * kolommen * lagen
     return rijen, kolommen, lagen, totaal
